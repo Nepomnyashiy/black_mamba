@@ -4,6 +4,9 @@ keys/
 dev/info/
 blackmamba-deploy/secrets/
 blackmamba-deploy/vault_password.txt
+deploy/secrets/vault_password.txt
+deploy/secrets/.env
+deploy/logs/
 *.key
 *.pem
 .env

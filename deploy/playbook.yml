@@ -1,0 +1,67 @@
+- name: Black Mamba local deployment (Spec-1)
+  hosts: local
+  become: true
+  vars_files:
+    - "{{ playbook_dir }}/secrets/vault.yml"
+  tasks:
+    - name: Ensure node layout directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ bm_stack_root }}", mode: "0755" }
+        - { path: "{{ bm_secrets_root }}", mode: "0700" }
+        - { path: "{{ bm_logs_root }}", mode: "0775" }
+        - { path: "{{ bm_workspaces_root }}", mode: "0775" }
+        - { path: "{{ bm_openwebui_data_dir }}", mode: "0775" }
+        - { path: "{{ bm_ollama_models_root }}", mode: "0775" }
+
+    - name: Render runtime env
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/templates/env.j2"
+        dest: "{{ bm_env_path }}"
+        mode: "0600"
+
+    - name: Render docker compose
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/templates/docker-compose.yml.j2"
+        dest: "{{ bm_compose_path }}"
+        mode: "0644"
+
+    - name: Start services via docker compose
+      ansible.builtin.command: "docker compose -f {{ bm_compose_path }} up -d"
+      args:
+        chdir: "{{ bm_stack_root }}"
+
+    - name: Pull models (host mode)
+      ansible.builtin.command: "ollama pull {{ item }}"
+      loop: "{{ bm_models }}"
+      when:
+        - bm_pull_models | bool
+        - bm_ollama_mode == 'host'
+
+    - name: Pull models (container mode)
+      ansible.builtin.command: "docker exec {{ bm_ollama_container_name }} ollama pull {{ item }}"
+      loop: "{{ bm_models }}"
+      when:
+        - bm_pull_models | bool
+        - bm_ollama_mode == 'container'
+
+    - name: Healthcheck Open WebUI
+      ansible.builtin.uri:
+        url: "http://localhost:{{ bm_openwebui_port }}"
+        status_code: 200
+      register: webui_health
+      retries: 10
+      delay: 3
+      until: webui_health.status == 200
+
+    - name: Healthcheck Ollama API
+      ansible.builtin.uri:
+        url: "{{ bm_ollama_host_url }}/api/tags"
+        status_code: 200
+      register: ollama_health
+      retries: 10
+      delay: 3
+      until: ollama_health.status == 200

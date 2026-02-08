@@ -1,0 +1,10 @@
+# Security-sensitive files
+keys/
+.continue/
+dev/info/
+blackmamba-deploy/secrets/
+blackmamba-deploy/vault_password.txt
+*.key
+*.pem
+.env
+.env.*

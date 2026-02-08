@@ -1,0 +1,25 @@
+bm_ui_flavor: open-webui
+bm_ollama_mode: host  # host or container
+
+bm_stack_root: /mnt/ufiles/blackmamba/node/stack
+bm_secrets_root: /mnt/ufiles/blackmamba/node/secrets
+bm_logs_root: /mnt/ufiles/blackmamba/node/logs
+bm_workspaces_root: /mnt/ufiles/blackmamba/node/workspaces
+bm_ollama_models_root: /mnt/ufiles/ollama/models
+bm_openwebui_data_dir: "{{ bm_stack_root }}/openwebui-data"
+
+bm_env_path: "{{ bm_secrets_root }}/.env"
+bm_compose_path: "{{ bm_stack_root }}/docker-compose.yml"
+
+bm_openwebui_port: 3000
+bm_openwebui_container_port: 8080
+bm_ollama_port: 11434
+bm_ollama_host_url: "http://127.0.0.1:{{ bm_ollama_port }}"
+bm_ollama_host_gateway: "http://host.docker.internal:{{ bm_ollama_port }}"
+bm_ollama_container_name: ollama
+
+bm_pull_models: true
+bm_models:
+  - llama3.1:8b
+  - qwen2.5-coder:7b
+  - deepseek-coder:6.7b

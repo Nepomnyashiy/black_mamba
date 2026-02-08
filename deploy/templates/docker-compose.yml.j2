@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:latest
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "{{ bm_openwebui_port }}:{{ bm_openwebui_container_port }}"
+    environment:
+{% if bm_ollama_mode == 'container' %}
+      - OLLAMA_BASE_URL=http://ollama:{{ bm_ollama_port }}
+{% else %}
+      - OLLAMA_BASE_URL={{ bm_ollama_host_gateway }}
+{% endif %}
+    volumes:
+      - "{{ bm_openwebui_data_dir }}:/app/backend/data"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+{% if bm_ollama_mode == 'container' %}
+  ollama:
+    image: ollama/ollama:latest
+    container_name: {{ bm_ollama_container_name }}
+    restart: unless-stopped
+    ports:
+      - "{{ bm_ollama_port }}:{{ bm_ollama_port }}"
+    volumes:
+      - "{{ bm_ollama_models_root }}:/root/.ollama"
+{% endif %}

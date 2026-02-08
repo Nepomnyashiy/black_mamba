@@ -1,0 +1,4 @@
+# Override any host-specific settings here.
+# Example:
+# bm_ollama_mode: container
+# bm_pull_models: false
